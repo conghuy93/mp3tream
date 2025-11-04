@@ -1,0 +1,57 @@
+version: '3.8'
+
+services:
+  # Service 1: nvhung9/mp3-api (Zing MP3 API)
+  mp3-api:
+    image: node:18-alpine
+    container_name: xiaozhi-mp3-api
+    restart: unless-stopped
+    working_dir: /app
+    ports:
+      - "5555:5555"  # Port cho mp3-api (có thể truy cập trực tiếp để test)
+    environment:
+      - PORT=5555
+      - NODE_ENV=production
+    volumes:
+      - ./mp3-api:/app
+    command: sh -c "npm install && npm start"
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:5555/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    networks:
+      - xiaozhi-network
+
+  # Service 2: Xiaozhi Adapter (Convert to Xiaozhi format)
+  xiaozhi-adapter:
+    image: node:18-alpine
+    container_name: xiaozhi-adapter
+    restart: unless-stopped
+    working_dir: /app
+    ports:
+      - "5005:5005"  # Port cho Xiaozhi (ESP32 sẽ connect vào đây)
+    environment:
+      - PORT=5005
+      - NODE_ENV=production
+      - MP3_API_URL=http://mp3-api:5555
+      - SECRET_KEY=your-esp32-secret-key-2024
+    volumes:
+      - ./adapter:/app
+    command: sh -c "npm install && node xiaozhi-adapter.js"
+    depends_on:
+      mp3-api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:5005/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    networks:
+      - xiaozhi-network
+
+networks:
+  xiaozhi-network:
+    driver: bridge
