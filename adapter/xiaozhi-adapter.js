@@ -16,25 +16,37 @@ const CACHE_MAX_SIZE = 10;
 
 app.get('/stream_pcm', async (req, res) => {
     try {
-        const { song, artist = '' } = req.query;
+        let { song, artist = '' } = req.query;
 
         if (!song) {
             return res.status(400).json({ error: 'Missing song parameter' });
+        }
+
+        // Sửa lỗi encoding nếu input bị lỗi (Sóng gió -> SÃ³ng giÃ³)
+        try {
+            const decodedSong = Buffer.from(song, 'latin1').toString('utf8');
+            // Nếu chuỗi sau khi decode có ký tự tiếng Việt hoặc thay đổi, dùng chuỗi đó
+            if (decodedSong !== song && /[àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ]/i.test(decodedSong)) {
+                console.log(`📝 Fixed encoding: "${song}" -> "${decodedSong}"`);
+                song = decodedSong;
+            }
+        } catch (e) {
+            // Giữ nguyên nếu lỗi
         }
 
         console.log(`🔍 Searching: "${song}" by "${artist}"`);
 
         const searchQuery = artist ? `${song} ${artist}` : song;
         const searchUrl = `${MP3_API_URL}/api/search?q=${encodeURIComponent(searchQuery)}`;
-        
+
         const searchResponse = await axios.get(searchUrl, {
             timeout: 15000,
             headers: { 'User-Agent': 'Xiaozhi-Adapter/1.0' }
         });
 
         let songs = [];
-        if (searchResponse.data.err === 0 && 
-            searchResponse.data.data && 
+        if (searchResponse.data.err === 0 &&
+            searchResponse.data.data &&
             Array.isArray(searchResponse.data.data.songs)) {
             songs = searchResponse.data.data.songs;
         }
@@ -47,21 +59,17 @@ app.get('/stream_pcm', async (req, res) => {
             });
         }
 
-        // Lấy bài đầu tiên
-        const topSongs = songs.slice(0, 1);
-        console.log(`✅ Found ${topSongs.length} songs`);
+        // Thử 3 bài hát đầu tiên
+        const topSongs = songs.slice(0, 3);
+        console.log(`📖 Checking top ${topSongs.length} results...`);
 
-        // ===== PRE-DOWNLOAD AUDIO =====
         const results = [];
         for (const songItem of topSongs) {
             const songId = songItem.encodeId;
-            
-            if (!songId) {
-                console.log(`⚠️ Skipping song without ID: ${songItem.title}`);
-                continue;
-            }
-            
-            console.log(`🎵 Processing: ${songItem.title} (ID: ${songId})`);
+
+            if (!songId) continue;
+
+            console.log(`🎵 Trying: ${songItem.title} (ID: ${songId})`);
 
             // Pre-download nếu chưa có trong cache
             if (!audioCache.has(songId)) {
@@ -90,37 +98,37 @@ app.get('/stream_pcm', async (req, res) => {
                         console.log(`🗑️ Removed ${firstKey} from cache`);
                     }
                 } catch (error) {
-                    console.error(`❌ Failed to pre-download ${songId}: ${error.message}`);
-                    continue;
+                    console.error(`❌ Failed to pre-download ${songId}: ${error.message} ${error.response ? `(Status: ${error.response.status})` : ''}`);
+                    continue; // Thử bài tiếp theo
                 }
             } else {
                 console.log(`✅ Using cached audio for ${songId}`);
             }
 
-            // ===== QUAN TRỌNG: TRẢ VỀ RELATIVE PATH (ESP32 TỰ GHÉP BASE_URL) =====
+            // Gán kết quả nếu tìm thấy bài hát ok
             results.push({
                 title: songItem.title || song,
                 artist: songItem.artistsNames || artist || 'Unknown',
-                // ✅ RELATIVE PATH - ESP32 sẽ tự ghép với base_url
                 audio_url: `/proxy_audio?id=${songId}`,
                 lyric_url: `/proxy_lyric?id=${songId}`,
                 thumbnail: songItem.thumbnail || songItem.thumbnailM || '',
                 duration: songItem.duration || 0,
                 language: 'unknown'
             });
+
+            // Tìm thấy một bài là đủ
+            break;
         }
 
         if (results.length === 0) {
-            return res.status(500).json({ error: 'Failed to process any songs' });
+            return res.status(500).json({
+                error: 'Failed to process any songs',
+                detail: 'Could not download audio for any of the search results.'
+            });
         }
 
-        // ===== FORMAT RESPONSE ĐƠN GIẢN - ESP32 GỐC CHỈ XỬ LÝ 1 BÀI =====
         const response = results[0];
-
-        console.log(`✅ Returning song with RELATIVE paths`);
-        console.log(`   Audio: ${response.audio_url}`);
-        console.log(`   Lyric: ${response.lyric_url}`);
-        
+        console.log(`✅ Success with: ${response.title}`);
         res.json(response);
 
     } catch (error) {
@@ -156,7 +164,7 @@ app.get('/proxy_audio', async (req, res) => {
             // Nếu không có trong cache, download mới
             console.log(`⚠️ Not in cache, downloading...`);
             const streamUrl = `${MP3_API_URL}/api/song/stream?id=${id}`;
-            
+
             const audioResponse = await axios({
                 method: 'GET',
                 url: streamUrl,
@@ -197,7 +205,7 @@ app.get('/proxy_lyric', async (req, res) => {
 
         if (response.data && response.data.err === 0 && response.data.data) {
             const lyricData = response.data.data;
-            
+
             if (lyricData.file) {
                 const lyricContent = await axios.get(lyricData.file);
                 res.set('Content-Type', 'text/plain; charset=utf-8');
@@ -230,7 +238,7 @@ app.get('/proxy_lyric', async (req, res) => {
 });
 
 app.get('/health', (req, res) => {
-    res.json({ 
+    res.json({
         status: 'ok',
         cache_size: audioCache.size,
         cached_songs: Array.from(audioCache.keys())

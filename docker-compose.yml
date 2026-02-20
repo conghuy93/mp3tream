@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # Service 1: nvhung9/mp3-api (Zing MP3 API)
   mp3-api:
