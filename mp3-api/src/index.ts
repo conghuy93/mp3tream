@@ -19,14 +19,14 @@ class ZingMp3Api {
 
   private getHash256(str: string) {
     return crypto.createHash("sha256")
-                 .update(str)
-                 .digest("hex")
+      .update(str)
+      .digest("hex")
   }
 
   private getHmac512(str: string, key: string) {
     let hmac = crypto.createHmac("sha512", key)
     return hmac.update(Buffer.from(str, "utf8"))
-               .digest("hex")
+      .digest("hex")
   }
 
   private hashParamNoId(path: string) {
@@ -50,40 +50,40 @@ class ZingMp3Api {
     )
   }
 
-  private hashCategoryMV (path: string, id: string, type: string) {
+  private hashCategoryMV(path: string, id: string, type: string) {
     return this.getHmac512(
       path + this.getHash256(`ctime=${this.CTIME}id=${id}type=${type}version=${this.VERSION}`),
       this.SECRET_KEY
     );
   }
 
-  private hashListMV (path: string, id: string, type: string, page: string, count: string) {
+  private hashListMV(path: string, id: string, type: string, page: string, count: string) {
     return this.getHmac512(
       path +
-        this.getHash256(
-          `count=${count}ctime=${this.CTIME}id=${id}page=${page}type=${type}version=${this.VERSION}`
-        ),
+      this.getHash256(
+        `count=${count}ctime=${this.CTIME}id=${id}page=${page}type=${type}version=${this.VERSION}`
+      ),
       this.SECRET_KEY
     );
   }
 
   private getCookie(): Promise<any> {
     return new Promise<any>((resolve, rejects) => {
-        axios.get(`${this.URL}`)
-          .then((res) => {
-            // TODO: Skip Error Object is possibly 'undefined'
-            if(res.headers["set-cookie"]) {
-              res.headers["set-cookie"].map((element, index) => {
-                if(index == 1) {
-                  resolve(element) // return cookie
-                }
-              })
-            }
-          })
-          .catch((err) => {
-            rejects(err) // return error value if any
-          })
-      }
+      axios.get(`${this.URL}`)
+        .then((res) => {
+          // TODO: Skip Error Object is possibly 'undefined'
+          if (res.headers["set-cookie"]) {
+            res.headers["set-cookie"].map((element, index) => {
+              if (index == 1) {
+                resolve(element) // return cookie
+              }
+            })
+          }
+        })
+        .catch((err) => {
+          rejects(err) // return error value if any
+        })
+    }
     )
   }
 
@@ -126,6 +126,7 @@ class ZingMp3Api {
 
   // getSong
   public getSong(songId: string): Promise<any> {
+    this.CTIME = String(Math.floor(Date.now() / 1000));
     return new Promise<any>((resolve, rejects) => {
       this.requestZingMp3("/api/v2/song/get/streaming", {
         id: songId,
@@ -142,6 +143,7 @@ class ZingMp3Api {
 
   // getDetailPlaylist
   public getDetailPlaylist(playlistId: string): Promise<any> {
+    this.CTIME = String(Math.floor(Date.now() / 1000));
     return new Promise<any>((resolve, rejects) => {
       this.requestZingMp3("/api/v2/page/get/playlist", {
         id: playlistId,
@@ -158,6 +160,7 @@ class ZingMp3Api {
 
   // getHome
   public getHome(): Promise<any> {
+    this.CTIME = String(Math.floor(Date.now() / 1000));
     return new Promise<any>((resolve, rejects) => {
       this.requestZingMp3("/api/v2/page/get/home", {
         page: 1,
@@ -176,6 +179,7 @@ class ZingMp3Api {
 
   // getTop100
   public getTop100(): Promise<any> {
+    this.CTIME = String(Math.floor(Date.now() / 1000));
     return new Promise<any>((resolve, rejects) => {
       this.requestZingMp3("/api/v2/page/get/top-100", {
         sig: this.hashParamNoId("/api/v2/page/get/top-100")
@@ -191,6 +195,7 @@ class ZingMp3Api {
 
   // getChartHome
   public getChartHome(): Promise<any> {
+    this.CTIME = String(Math.floor(Date.now() / 1000));
     return new Promise<any>((resolve, rejects) => {
       this.requestZingMp3("/api/v2/page/get/chart-home", {
         sig: this.hashParamNoId("/api/v2/page/get/chart-home")
@@ -206,6 +211,7 @@ class ZingMp3Api {
 
   // getNewReleaseChart
   public getNewReleaseChart(): Promise<any> {
+    this.CTIME = String(Math.floor(Date.now() / 1000));
     return new Promise<any>((resolve, rejects) => {
       this.requestZingMp3("/api/v2/page/get/newrelease-chart", {
         sig: this.hashParamNoId("/api/v2/page/get/newrelease-chart")
@@ -221,6 +227,7 @@ class ZingMp3Api {
 
   // getInfoSong
   public getInfoSong(songId: string): Promise<any> {
+    this.CTIME = String(Math.floor(Date.now() / 1000));
     return new Promise<any>((resolve, rejects) => {
       this.requestZingMp3("/api/v2/song/get/info", {
         id: songId,
@@ -236,6 +243,7 @@ class ZingMp3Api {
   }
 
   public getListArtistSong(artistId: string, page: string, count: string): Promise<any> {
+    this.CTIME = String(Math.floor(Date.now() / 1000));
     return new Promise<any>((resolve, rejects) => {
       this.requestZingMp3("/api/v2/song/get/list", {
         id: artistId,
@@ -257,6 +265,7 @@ class ZingMp3Api {
 
   // getArtist
   public getArtist(name: string): Promise<any> {
+    this.CTIME = String(Math.floor(Date.now() / 1000));
     return new Promise<any>((resolve, rejects) => {
       this.requestZingMp3("/api/v2/page/get/artist", {
         alias: name,
@@ -273,6 +282,7 @@ class ZingMp3Api {
 
   // getLyric
   public getLyric(songId: string): Promise<any> {
+    this.CTIME = String(Math.floor(Date.now() / 1000));
     return new Promise<any>((resolve, rejects) => {
       this.requestZingMp3("/api/v2/lyric/get/lyric", {
         id: songId,
@@ -289,6 +299,7 @@ class ZingMp3Api {
 
   // search
   public search(name: string): Promise<any> {
+    this.CTIME = String(Math.floor(Date.now() / 1000));
     return new Promise<any>((resolve, rejects) => {
       this.requestZingMp3("/api/v2/search/multi", {
         q: name,
@@ -305,6 +316,7 @@ class ZingMp3Api {
 
   // getListMV
   public getListMV(id: string, page: string, count: string): Promise<any> {
+    this.CTIME = String(Math.floor(Date.now() / 1000));
     return new Promise<any>((resolve, rejects) => {
       this.requestZingMp3("/api/v2/video/get/list", {
         id: id,
@@ -325,6 +337,7 @@ class ZingMp3Api {
 
   // getCategoryMV
   public getCategoryMV(id: string): Promise<any> {
+    this.CTIME = String(Math.floor(Date.now() / 1000));
     return new Promise<any>((resolve, rejects) => {
       this.requestZingMp3("/api/v2/genre/get/info", {
         id: id,
@@ -342,6 +355,7 @@ class ZingMp3Api {
 
   // getVideo
   public getVideo(videoId: string): Promise<any> {
+    this.CTIME = String(Math.floor(Date.now() / 1000));
     return new Promise<any>((resolve, rejects) => {
       this.requestZingMp3("/api/v2/page/get/video", {
         id: videoId,
@@ -360,7 +374,7 @@ class ZingMp3Api {
 
 // instance default
 export const ZingMp3 = new ZingMp3Api(
-  "1.6.34", // VERSION
+  "1.10.23", // VERSION
   "https://zingmp3.vn", // URL
   "2aa2d1c561e809b267f3638c4a307aab", // SECRET_KEY
   "88265e23d4284f25963e6eedac8fbfa3", // API_KEY

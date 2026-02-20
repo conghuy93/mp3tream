@@ -44,18 +44,18 @@ class ZingMp3Api {
         return new Promise((resolve, rejects) => {
             axios_1.default.get(`${this.URL}`)
                 .then((res) => {
-                // TODO: Skip Error Object is possibly 'undefined'
-                if (res.headers["set-cookie"]) {
-                    res.headers["set-cookie"].map((element, index) => {
-                        if (index == 1) {
-                            resolve(element); // return cookie
-                        }
-                    });
-                }
-            })
+                    // TODO: Skip Error Object is possibly 'undefined'
+                    if (res.headers["set-cookie"]) {
+                        res.headers["set-cookie"].map((element, index) => {
+                            if (index == 1) {
+                                resolve(element); // return cookie
+                            }
+                        });
+                    }
+                })
                 .catch((err) => {
-                rejects(err); // return error value if any
-            });
+                    rejects(err); // return error value if any
+                });
         });
     }
     requestZingMp3(path, qs) {
@@ -67,57 +67,60 @@ class ZingMp3Api {
             client.interceptors.response.use((res) => res.data); // setting axios response data
             this.getCookie()
                 .then((cookie) => {
-                // request
-                client.get(path, {
-                    headers: {
-                        Cookie: `${cookie}`,
-                    },
-                    params: Object.assign(Object.assign({}, qs), { ctime: this.CTIME, version: this.VERSION, apiKey: this.API_KEY })
+                    // request
+                    client.get(path, {
+                        headers: {
+                            Cookie: `${cookie}`,
+                        },
+                        params: Object.assign(Object.assign({}, qs), { ctime: this.CTIME, version: this.VERSION, apiKey: this.API_KEY })
+                    })
+                        .then((res) => {
+                            resolve(res);
+                        })
+                        .catch((err) => {
+                            rejects(err);
+                        });
                 })
-                    .then((res) => {
-                    resolve(res);
-                })
-                    .catch((err) => {
-                    rejects(err);
-                });
-            })
                 .catch((err) => {
-                console.log(err);
-            });
+                    console.log(err);
+                });
         });
     }
     // getSong
     getSong(songId) {
+        this.CTIME = String(Math.floor(Date.now() / 1000));
         return new Promise((resolve, rejects) => {
             this.requestZingMp3("/api/v2/song/get/streaming", {
                 id: songId,
                 sig: this.hashParam("/api/v2/song/get/streaming", songId)
             })
                 .then((res) => {
-                resolve(res);
-            })
+                    resolve(res);
+                })
                 .catch((err) => {
-                rejects(err);
-            });
+                    rejects(err);
+                });
         });
     }
     // getDetailPlaylist
     getDetailPlaylist(playlistId) {
+        this.CTIME = String(Math.floor(Date.now() / 1000));
         return new Promise((resolve, rejects) => {
             this.requestZingMp3("/api/v2/page/get/playlist", {
                 id: playlistId,
                 sig: this.hashParam("/api/v2/page/get/playlist", playlistId)
             })
                 .then((res) => {
-                resolve(res);
-            })
+                    resolve(res);
+                })
                 .catch((err) => {
-                rejects(err);
-            });
+                    rejects(err);
+                });
         });
     }
     // getHome
     getHome() {
+        this.CTIME = String(Math.floor(Date.now() / 1000));
         return new Promise((resolve, rejects) => {
             this.requestZingMp3("/api/v2/page/get/home", {
                 page: 1,
@@ -126,71 +129,76 @@ class ZingMp3Api {
                 sig: this.hashParamHome("/api/v2/page/get/home")
             })
                 .then((res) => {
-                resolve(res);
-            })
+                    resolve(res);
+                })
                 .catch((err) => {
-                rejects(err);
-            });
+                    rejects(err);
+                });
         });
     }
     // getTop100
     getTop100() {
+        this.CTIME = String(Math.floor(Date.now() / 1000));
         return new Promise((resolve, rejects) => {
             this.requestZingMp3("/api/v2/page/get/top-100", {
                 sig: this.hashParamNoId("/api/v2/page/get/top-100")
             })
                 .then((res) => {
-                resolve(res);
-            })
+                    resolve(res);
+                })
                 .catch((err) => {
-                rejects(err);
-            });
+                    rejects(err);
+                });
         });
     }
     // getChartHome
     getChartHome() {
+        this.CTIME = String(Math.floor(Date.now() / 1000));
         return new Promise((resolve, rejects) => {
             this.requestZingMp3("/api/v2/page/get/chart-home", {
                 sig: this.hashParamNoId("/api/v2/page/get/chart-home")
             })
                 .then((res) => {
-                resolve(res);
-            })
+                    resolve(res);
+                })
                 .catch((err) => {
-                rejects(err);
-            });
+                    rejects(err);
+                });
         });
     }
     // getNewReleaseChart
     getNewReleaseChart() {
+        this.CTIME = String(Math.floor(Date.now() / 1000));
         return new Promise((resolve, rejects) => {
             this.requestZingMp3("/api/v2/page/get/newrelease-chart", {
                 sig: this.hashParamNoId("/api/v2/page/get/newrelease-chart")
             })
                 .then((res) => {
-                resolve(res);
-            })
+                    resolve(res);
+                })
                 .catch((err) => {
-                rejects(err);
-            });
+                    rejects(err);
+                });
         });
     }
     // getInfoSong
     getInfoSong(songId) {
+        this.CTIME = String(Math.floor(Date.now() / 1000));
         return new Promise((resolve, rejects) => {
             this.requestZingMp3("/api/v2/song/get/info", {
                 id: songId,
                 sig: this.hashParam("/api/v2/song/get/info", songId)
             })
                 .then((res) => {
-                resolve(res);
-            })
+                    resolve(res);
+                })
                 .catch((err) => {
-                rejects(err);
-            });
+                    rejects(err);
+                });
         });
     }
     getListArtistSong(artistId, page, count) {
+        this.CTIME = String(Math.floor(Date.now() / 1000));
         return new Promise((resolve, rejects) => {
             this.requestZingMp3("/api/v2/song/get/list", {
                 id: artistId,
@@ -202,60 +210,64 @@ class ZingMp3Api {
                 sig: this.hashListMV("/api/v2/song/get/list", artistId, "artist", page, count)
             })
                 .then((res) => {
-                resolve(res);
-            })
+                    resolve(res);
+                })
                 .catch((err) => {
-                rejects(err);
-            });
+                    rejects(err);
+                });
         });
     }
     // getArtist
     getArtist(name) {
+        this.CTIME = String(Math.floor(Date.now() / 1000));
         return new Promise((resolve, rejects) => {
             this.requestZingMp3("/api/v2/page/get/artist", {
                 alias: name,
                 sig: this.hashParamNoId("/api/v2/page/get/artist")
             })
                 .then((res) => {
-                resolve(res);
-            })
+                    resolve(res);
+                })
                 .catch((err) => {
-                rejects(err);
-            });
+                    rejects(err);
+                });
         });
     }
     // getLyric
     getLyric(songId) {
+        this.CTIME = String(Math.floor(Date.now() / 1000));
         return new Promise((resolve, rejects) => {
             this.requestZingMp3("/api/v2/lyric/get/lyric", {
                 id: songId,
                 sig: this.hashParam("/api/v2/lyric/get/lyric", songId)
             })
                 .then((res) => {
-                resolve(res);
-            })
+                    resolve(res);
+                })
                 .catch((err) => {
-                rejects(err);
-            });
+                    rejects(err);
+                });
         });
     }
     // search
     search(name) {
+        this.CTIME = String(Math.floor(Date.now() / 1000));
         return new Promise((resolve, rejects) => {
             this.requestZingMp3("/api/v2/search/multi", {
                 q: name,
                 sig: this.hashParamNoId("/api/v2/search/multi")
             })
                 .then((res) => {
-                resolve(res);
-            })
+                    resolve(res);
+                })
                 .catch((err) => {
-                rejects(err);
-            });
+                    rejects(err);
+                });
         });
     }
     // getListMV
     getListMV(id, page, count) {
+        this.CTIME = String(Math.floor(Date.now() / 1000));
         return new Promise((resolve, rejects) => {
             this.requestZingMp3("/api/v2/video/get/list", {
                 id: id,
@@ -266,15 +278,16 @@ class ZingMp3Api {
                 sig: this.hashListMV("/api/v2/video/get/list", id, "genre", page, count),
             })
                 .then((res) => {
-                resolve(res);
-            })
+                    resolve(res);
+                })
                 .catch((err) => {
-                rejects(err);
-            });
+                    rejects(err);
+                });
         });
     }
     // getCategoryMV
     getCategoryMV(id) {
+        this.CTIME = String(Math.floor(Date.now() / 1000));
         return new Promise((resolve, rejects) => {
             this.requestZingMp3("/api/v2/genre/get/info", {
                 id: id,
@@ -282,34 +295,35 @@ class ZingMp3Api {
                 sig: this.hashCategoryMV("/api/v2/genre/get/info", id, "video"),
             })
                 .then((res) => {
-                resolve(res);
-            })
+                    resolve(res);
+                })
                 .catch((err) => {
-                rejects(err);
-            });
+                    rejects(err);
+                });
         });
     }
     // getVideo
     getVideo(videoId) {
+        this.CTIME = String(Math.floor(Date.now() / 1000));
         return new Promise((resolve, rejects) => {
             this.requestZingMp3("/api/v2/page/get/video", {
                 id: videoId,
                 sig: this.hashParam("/api/v2/page/get/video", videoId),
             })
                 .then((res) => {
-                resolve(res);
-            })
+                    resolve(res);
+                })
                 .catch((err) => {
-                rejects(err);
-            });
+                    rejects(err);
+                });
         });
     }
 } // END
 // instance default
-exports.ZingMp3 = new ZingMp3Api("1.6.34", // VERSION
-"https://zingmp3.vn", // URL
-"2aa2d1c561e809b267f3638c4a307aab", // SECRET_KEY
-"88265e23d4284f25963e6eedac8fbfa3", // API_KEY
-String(Math.floor(Date.now() / 1000)) // CTIME
+exports.ZingMp3 = new ZingMp3Api("1.10.23", // VERSION
+    "https://zingmp3.vn", // URL
+    "2aa2d1c561e809b267f3638c4a307aab", // SECRET_KEY
+    "88265e23d4284f25963e6eedac8fbfa3", // API_KEY
+    String(Math.floor(Date.now() / 1000)) // CTIME
 );
 //# sourceMappingURL=index.js.map
