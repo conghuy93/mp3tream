@@ -50,12 +50,20 @@ app.get('/api/song/stream', async (req, res) => {
     const { id, quality = '128' } = req.query;
     if (!id) return res.status(400).json({ error: 'Missing id' });
     const response = await ZingMp3.getSong(String(id));
+
+    // DEBUG LOG
+    console.log(`📡 ZingMP3 Song Response for ${id}:`, JSON.stringify(response));
+
     const url = response?.data?.[String(quality)];
     if (!url || typeof url !== 'string') {
-      return res.status(404).json({ error: `Stream URL not found for quality ${quality}` });
+      return res.status(404).json({
+        error: `Stream URL not found for quality ${quality}`,
+        zing_response: response
+      });
     }
     res.redirect(url);
   } catch (e) {
+    console.error(`❌ Stream Error:`, e.message);
     res.status(e?.response?.status || 500).json({ error: e?.message || 'Internal Error' });
   }
 });
