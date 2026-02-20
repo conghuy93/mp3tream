@@ -10,6 +10,12 @@ services:
     environment:
       - PORT=5555
       - NODE_ENV=production
+      # Cấu hình Proxy để bỏ chặn địa lý (nếu ở Nhật Bản)
+      # - PROXY_PROTOCOL=http
+      # - PROXY_HOST=your-vn-proxy-host
+      # - PROXY_PORT=8080
+      # - PROXY_USER=username
+      # - PROXY_PASSWORD=password
     volumes:
       - ./mp3-api:/app
     command: sh -c "npm install && npm start"

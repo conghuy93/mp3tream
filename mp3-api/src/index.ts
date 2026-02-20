@@ -3,18 +3,15 @@ import crypto from "crypto"
 
 class ZingMp3Api {
 
-  public VERSION: string
-  public URL: string
-  public SECRET_KEY: string
-  public API_KEY: string
-  public CTIME: string
+  public PROXY: any
 
-  constructor(VERSION: string, URL: string, SECRET_KEY: string, API_KEY: string, CTIME: string) {
+  constructor(VERSION: string, URL: string, SECRET_KEY: string, API_KEY: string, CTIME: string, PROXY?: any) {
     this.VERSION = VERSION
     this.URL = URL
     this.SECRET_KEY = SECRET_KEY
     this.API_KEY = API_KEY
     this.CTIME = CTIME
+    this.PROXY = PROXY
   }
 
   private getHash256(str: string) {
@@ -93,6 +90,7 @@ class ZingMp3Api {
       // Config axios request default URL "https://zingmp3.vn"
       const client = axios.create({
         baseURL: `${this.URL}`,
+        proxy: this.PROXY || false
       });
 
       client.interceptors.response.use((res: any) => res.data); // setting axios response data
@@ -378,5 +376,14 @@ export const ZingMp3 = new ZingMp3Api(
   "https://zingmp3.vn", // URL
   "2aa2d1c561e809b267f3638c4a307aab", // SECRET_KEY
   "88265e23d4284f25963e6eedac8fbfa3", // API_KEY
-  String(Math.floor(Date.now() / 1000)) // CTIME
+  String(Math.floor(Date.now() / 1000)), // CTIME
+  process.env.PROXY_HOST ? {
+    protocol: process.env.PROXY_PROTOCOL || 'http',
+    host: process.env.PROXY_HOST,
+    port: parseInt(process.env.PROXY_PORT || '8080'),
+    auth: process.env.PROXY_USER ? {
+      username: process.env.PROXY_USER,
+      password: process.env.PROXY_PASSWORD
+    } : undefined
+  } : undefined
 )

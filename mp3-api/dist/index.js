@@ -7,12 +7,13 @@ exports.ZingMp3 = void 0;
 const axios_1 = __importDefault(require("axios"));
 const crypto_1 = __importDefault(require("crypto"));
 class ZingMp3Api {
-    constructor(VERSION, URL, SECRET_KEY, API_KEY, CTIME) {
+    constructor(VERSION, URL, SECRET_KEY, API_KEY, CTIME, PROXY) {
         this.VERSION = VERSION;
         this.URL = URL;
         this.SECRET_KEY = SECRET_KEY;
         this.API_KEY = API_KEY;
         this.CTIME = CTIME;
+        this.PROXY = PROXY;
     }
     getHash256(str) {
         return crypto_1.default.createHash("sha256")
@@ -63,6 +64,7 @@ class ZingMp3Api {
             // Config axios request default URL "https://zingmp3.vn"
             const client = axios_1.default.create({
                 baseURL: `${this.URL}`,
+                proxy: this.PROXY || false
             });
             client.interceptors.response.use((res) => res.data); // setting axios response data
             this.getCookie()
@@ -324,6 +326,15 @@ exports.ZingMp3 = new ZingMp3Api("1.10.23", // VERSION
     "https://zingmp3.vn", // URL
     "2aa2d1c561e809b267f3638c4a307aab", // SECRET_KEY
     "88265e23d4284f25963e6eedac8fbfa3", // API_KEY
-    String(Math.floor(Date.now() / 1000)) // CTIME
+    String(Math.floor(Date.now() / 1000)), // CTIME
+    process.env.PROXY_HOST ? {
+        protocol: process.env.PROXY_PROTOCOL || 'http',
+        host: process.env.PROXY_HOST,
+        port: parseInt(process.env.PROXY_PORT || '8080'),
+        auth: process.env.PROXY_USER ? {
+            username: process.env.PROXY_USER,
+            password: process.env.PROXY_PASSWORD
+        } : undefined
+    } : undefined
 );
 //# sourceMappingURL=index.js.map
